@@ -1,0 +1,16 @@
+name = "gemini-api-worker"
+main = "gemini-api-worker.js"
+compatibility_date = "2023-10-30"
+
+# 环境变量配置
+[vars]
+# 在部署时需要设置GEMINI_API_KEY
+# 可以通过命令行设置: wrangler secret put GEMINI_API_KEY
+
+# 开发环境配置
+[env.dev]
+# 开发环境可以在这里配置不同的变量
+
+# 生产环境配置
+[env.production]
+# 生产环境配置

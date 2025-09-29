@@ -1,0 +1,37 @@
+name = "gemini-api-worker"
+main = "gemini-api-worker.js"
+compatibility_date = "2023-10-30"
+
+# 环境变量配置
+[vars]
+# 在部署时需要设置GEMINI_API_KEY
+# 可以通过命令行设置: wrangler secret put GEMINI_API_KEY
+
+# 开发环境配置
+[env.dev]
+# 开发环境可以在这里配置不同的变量
+
+# 生产环境配置
+[env.production]
+# 生产环境配置
+
+
+现在您可以通过以下方式使用这个API：
+curl -X POST https://gemini-api-worker.bassnova.workers.dev \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "您的问题", "model": "gemini-2.5-pro"}'
+
+
+const response = await fetch("https://gemini-api-worker.bassnova.workers.dev", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    prompt: "您的问题",
+    model: "gemini-2.5-pro"
+  })
+});
+
+const data = await response.json();
+console.log(data.text); // 输出AI的回答  

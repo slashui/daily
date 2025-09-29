@@ -23,7 +23,13 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(tasklist:*)",
-      "Bash(env -u:*)"
+      "Bash(env -u:*)",
+      "Bash(npx:*)",
+      "Bash(npm install:*)",
+      "Bash(wrangler deploy:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
