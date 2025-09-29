@@ -4,56 +4,72 @@ import ProjectDetail from './pages/ProjectDetail'
 import DailyWorkbench from './pages/DailyWorkbench'
 import DailySummaries from './pages/DailySummaries'
 import DateTimeDisplay from './components/DateTimeDisplay'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">
-                  Project-Daily Workbench
+      <nav className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+        <div className="container mx-auto px-6">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="flex-shrink-0">
+                <h1 className="text-xl font-bold text-foreground">
+                  Project Workbench
                 </h1>
               </div>
-              <div className="ml-6 flex space-x-8">
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`
-                  }
-                >
-                  项目看板
+              <Separator orientation="vertical" className="h-6" />
+              <div className="flex space-x-1">
+                <NavLink to="/">
+                  {({ isActive }) => (
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      项目看板
+                    </Button>
+                  )}
                 </NavLink>
-                <NavLink
-                  to="/workbench"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`
-                  }
-                >
-                  今日工作台
+                <NavLink to="/workbench">
+                  {({ isActive }) => (
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      今日工作台
+                    </Button>
+                  )}
                 </NavLink>
-                <NavLink
-                  to="/summaries"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`
-                  }
-                >
-                  往日任务
+                <NavLink to="/summaries">
+                  {({ isActive }) => (
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      往日任务
+                    </Button>
+                  )}
                 </NavLink>
               </div>
             </div>
@@ -67,7 +83,7 @@ function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="container mx-auto px-6 py-8">
         <Routes>
           <Route path="/" element={<ProjectDashboard />} />
           <Route path="/project/:id" element={<ProjectDetail />} />

@@ -4,6 +4,15 @@ import { Project, CreateTodoData, CreateLogData } from '../types'
 import { projectsAPI, todosAPI, logsAPI, dailyWorkbenchAPI } from '../utils/api'
 import MarkdownEditor from '../components/MarkdownEditor'
 import RequirementsPreview from '../components/RequirementsPreview'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Progress } from '@/components/ui/progress'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { ArrowLeft, Plus, Calendar, CheckCircle2, Clock, FileText, Edit, X, Trash2 } from 'lucide-react'
 
 function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
@@ -189,36 +198,41 @@ function ProjectDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading project...</div>
+        <div className="text-muted-foreground">Loading project...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="text-red-700">Error: {error}</div>
-        <button
-          onClick={() => id && loadProject(id)}
-          className="mt-2 text-red-600 hover:text-red-800 underline"
-        >
-          Retry
-        </button>
-      </div>
+      <Card className="border-destructive bg-destructive/5">
+        <CardContent className="pt-6">
+          <div className="text-destructive">Error: {error}</div>
+          <Button
+            onClick={() => id && loadProject(id)}
+            variant="link"
+            className="mt-2 h-auto p-0 text-destructive hover:text-destructive/80"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
   if (!project) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">项目不存在</div>
-        <Link
-          to="/"
-          className="mt-4 text-blue-600 hover:text-blue-800 underline inline-block"
-        >
-          返回项目看板
-        </Link>
-      </div>
+      <Card className="text-center py-12 border-border bg-card">
+        <CardContent className="space-y-4">
+          <div className="text-muted-foreground text-lg">项目不存在</div>
+          <Button asChild variant="outline" className="border-border hover:bg-accent">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              返回项目看板
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -226,166 +240,201 @@ function ProjectDetail() {
   const totalTodos = project.todos.length
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex-1">
-          <Link
-            to="/"
-            className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
-          >
-            ← 返回项目看板
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-4">
+        <Button asChild variant="ghost" className="w-fit p-2 h-auto text-muted-foreground hover:text-foreground">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            返回项目看板
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-          {project.description && (
-            <p className="text-gray-600 mt-1">{project.description}</p>
-          )}
-          <div className="mt-2 text-sm text-gray-500">
-            进度: {completedTodos}/{totalTodos} 任务完成
-          </div>
-        </div>
+        </Button>
 
-        {/* Requirements buttons */}
-        <div className="flex gap-2 ml-4">
-          {project.requirements && (
-            <button
-              onClick={() => setShowRequirementsPreview(true)}
-              className="px-4 py-2 text-sm bg-green-100 text-green-700 border border-green-300 rounded-md hover:bg-green-200"
+        <div className="flex items-start justify-between">
+          <div className="flex-1 space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
+              {project.description && (
+                <p className="text-muted-foreground mt-2 text-lg">{project.description}</p>
+              )}
+            </div>
+
+            {/* Progress Info */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">任务进度:</span>
+                <span className="text-foreground font-medium">
+                  {completedTodos}/{totalTodos} 完成
+                </span>
+              </div>
+              {totalTodos > 0 && (
+                <Progress
+                  value={(completedTodos / totalTodos) * 100}
+                  className="h-2 bg-muted"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Requirements buttons */}
+          <div className="flex gap-3 ml-6">
+            {project.requirements && (
+              <Button
+                onClick={() => setShowRequirementsPreview(true)}
+                variant="outline"
+                size="sm"
+                className="border-primary/20 text-primary hover:bg-primary/10"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                查看需求
+              </Button>
+            )}
+            <Button
+              onClick={() => setIsEditingRequirements(true)}
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              查看需求
-            </button>
-          )}
-          <button
-            onClick={() => setIsEditingRequirements(true)}
-            className="px-4 py-2 text-sm bg-blue-100 text-blue-700 border border-blue-300 rounded-md hover:bg-blue-200"
-          >
-            {project.requirements ? '编辑需求' : '添加需求'}
-          </button>
+              <Edit className="h-4 w-4 mr-2" />
+              {project.requirements ? '编辑需求' : '添加需求'}
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Todos Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">
+        <Card className="border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
               待办事项 ({project.todos.length})
-            </h2>
-          </div>
-
-          {/* Add Todo Form */}
-          <form onSubmit={handleCreateTodo} className="mb-6">
-            <div className="flex space-x-2">
-              <input
-                type="text"
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add Todo Form */}
+            <form onSubmit={handleCreateTodo} className="flex space-x-2">
+              <Input
                 value={newTodoContent}
                 onChange={(e) => setNewTodoContent(e.target.value)}
                 placeholder="添加新任务..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 bg-background border-border focus:border-primary"
                 disabled={todoLoading}
               />
-              <button
+              <Button
                 type="submit"
                 disabled={todoLoading || !newTodoContent.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
+                <Plus className="h-4 w-4 mr-2" />
                 {todoLoading ? '添加中...' : '添加'}
-              </button>
-            </div>
-          </form>
+              </Button>
+            </form>
 
-          {/* Todos List */}
-          {project.todos.length === 0 ? (
-            <div className="text-gray-500 text-center py-8">
-              暂无待办事项
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {project.todos.map((todo) => (
-                <div
-                  key={todo.id}
-                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                >
-                  <input
-                    type="checkbox"
-                    checked={todo.is_completed}
-                    onChange={() => handleToggleTodo(todo.id, todo.is_completed)}
-                    className="h-4 w-4 text-blue-600 rounded border-gray-300"
-                  />
-                  <span
-                    className={`flex-1 ${
-                      todo.is_completed ? 'line-through text-gray-500' : 'text-gray-900'
-                    }`}
+            {/* Todos List */}
+            {project.todos.length === 0 ? (
+              <div className="text-muted-foreground text-center py-8">
+                暂无待办事项
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {project.todos.map((todo) => (
+                  <div
+                    key={todo.id}
+                    className="flex items-center space-x-3 p-4 bg-muted/30 rounded-lg border border-border hover:border-primary/20 transition-colors"
                   >
-                    {todo.content}
-                  </span>
-                  <button
-                    onClick={() => handleToggleWorkbench(todo.id)}
-                    className={`px-2 py-1 text-xs rounded ${
-                      todayTodos.includes(todo.id)
-                        ? 'bg-green-100 text-green-700 border border-green-300'
-                        : 'bg-gray-100 text-gray-600 border border-gray-300'
-                    }`}
-                  >
-                    {todayTodos.includes(todo.id) ? '已加入今日' : '加入今日'}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    删除
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <Checkbox
+                      checked={todo.is_completed}
+                      onCheckedChange={() => handleToggleTodo(todo.id, todo.is_completed)}
+                      className="border-primary/60 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary w-5 h-5"
+                    />
+                    <span
+                      className={`flex-1 ${
+                        todo.is_completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      }`}
+                    >
+                      {todo.content}
+                    </span>
+                    <Badge
+                      variant={todayTodos.includes(todo.id) ? "default" : "outline"}
+                      className={todayTodos.includes(todo.id)
+                        ? "bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:bg-accent"
+                      }
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleWorkbench(todo.id)}
+                        className="h-auto p-0 text-inherit hover:bg-transparent"
+                      >
+                        <Clock className="h-3 w-3 mr-1" />
+                        {todayTodos.includes(todo.id) ? '已加入今日' : '加入今日'}
+                      </Button>
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTodo(todo.id)}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
         </div>
 
         {/* Daily Logs Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">
+        <Card className="border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
               工作日志 ({project.dailyLogs.length})
-            </h2>
-          </div>
-
-          {/* Add Log Form */}
-          <form onSubmit={handleCreateLog} className="mb-6">
-            <div className="space-y-2">
-              <textarea
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add Log Form */}
+            <form onSubmit={handleCreateLog} className="space-y-3">
+              <Textarea
                 value={newLogContent}
                 onChange={(e) => setNewLogContent(e.target.value)}
                 placeholder="记录今天的工作、问题或想法..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="bg-background border-border focus:border-primary"
                 disabled={logLoading}
               />
-              <button
+              <Button
                 type="submit"
                 disabled={logLoading || !newLogContent.trim()}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
+                <Plus className="h-4 w-4 mr-2" />
                 {logLoading ? '保存中...' : '保存日志'}
-              </button>
-            </div>
-          </form>
+              </Button>
+            </form>
 
-          {/* Logs List */}
-          {project.dailyLogs.length === 0 ? (
-            <div className="text-gray-500 text-center py-8">
-              暂无工作日志
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {project.dailyLogs.map((log) => (
-                <div key={log.id} className="border-l-4 border-blue-500 pl-4 bg-blue-50 p-3 rounded-r-lg">
-                  <div className="text-sm text-gray-500 mb-2">
-                    {new Date(log.log_date).toLocaleDateString('zh-CN')} {new Date(log.log_date).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}
+            {/* Logs List */}
+            {project.dailyLogs.length === 0 ? (
+              <div className="text-muted-foreground text-center py-8">
+                暂无工作日志
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {project.dailyLogs.map((log) => (
+                  <div key={log.id} className="border-l-4 border-primary pl-4 bg-primary/5 p-4 rounded-r-lg">
+                    <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(log.log_date).toLocaleDateString('zh-CN')} {new Date(log.log_date).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}
+                    </div>
+                    <div className="text-foreground whitespace-pre-wrap">{log.content}</div>
                   </div>
-                  <div className="text-gray-900 whitespace-pre-wrap">{log.content}</div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
         </div>
       </div>
 

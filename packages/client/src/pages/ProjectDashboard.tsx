@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react'
 import { Project, CreateProjectData } from '../types'
 import { projectsAPI } from '../utils/api'
 import ProjectCard from '../components/ProjectCard'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Plus, FolderOpen } from 'lucide-react'
 
 function ProjectDashboard() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -56,117 +61,128 @@ function ProjectDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading projects...</div>
+        <div className="text-muted-foreground">Loading dashboard...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="text-red-700">Error: {error}</div>
-        <button
-          onClick={loadProjects}
-          className="mt-2 text-red-600 hover:text-red-800 underline"
-        >
-          Retry
-        </button>
-      </div>
+      <Card className="border-destructive bg-destructive/5">
+        <CardContent className="pt-6">
+          <div className="text-destructive">Error: {error}</div>
+          <Button
+            onClick={loadProjects}
+            variant="link"
+            className="mt-2 h-auto p-0 text-destructive hover:text-destructive/80"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">项目看板</h1>
-          <p className="text-gray-600 mt-1">管理所有项目，跟踪进度和更新状态</p>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <FolderOpen className="h-8 w-8 text-primary" />
+            项目看板
+          </h1>
+          <p className="text-muted-foreground mt-1">管理和跟踪您的所有项目进展</p>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
+        <Button onClick={() => setShowCreateForm(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Plus className="h-4 w-4 mr-2" />
           新建项目
-        </button>
+        </Button>
       </div>
 
-      {/* Create Project Form */}
-      {showCreateForm && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">创建新项目</h2>
-          <form onSubmit={handleCreateProject} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                项目名称 *
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="输入项目名称"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                项目描述
-              </label>
-              <textarea
-                id="description"
-                value={newProject.description || ''}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={3}
-                placeholder="输入项目描述（可选）"
-              />
-            </div>
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
-              >
-                创建项目
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreateForm(false)
-                  setNewProject({ name: '', description: '' })
-                }}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors"
-              >
-                取消
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+        {/* Create Project Form */}
+        {showCreateForm && (
+          <Card className="border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-foreground">创建新项目</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateProject} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium text-foreground">
+                    项目名称 *
+                  </label>
+                  <Input
+                    type="text"
+                    id="name"
+                    value={newProject.name}
+                    onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                    placeholder="输入项目名称"
+                    className="bg-background border-border focus:border-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="description" className="text-sm font-medium text-foreground">
+                    项目描述
+                  </label>
+                  <Textarea
+                    id="description"
+                    value={newProject.description || ''}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                    placeholder="输入项目描述（可选）"
+                    className="bg-background border-border focus:border-primary"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    创建项目
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateForm(false)
+                      setNewProject({ name: '', description: '' })
+                    }}
+                    className="border-border hover:bg-accent"
+                  >
+                    取消
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Projects Grid */}
-      {projects.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-500 text-lg mb-4">还没有项目</div>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            创建你的第一个项目
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onProjectUpdate={handleProjectUpdate}
-              onProjectDelete={handleProjectDelete}
-            />
-          ))}
-        </div>
-      )}
+        {/* Projects Grid */}
+        {projects.length === 0 ? (
+          <Card className="text-center py-12 border-border bg-card">
+            <CardContent className="space-y-4">
+              <div className="text-muted-foreground text-lg">还没有项目</div>
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                size="lg"
+              >
+                创建你的第一个项目
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onProjectUpdate={handleProjectUpdate}
+                onProjectDelete={handleProjectDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

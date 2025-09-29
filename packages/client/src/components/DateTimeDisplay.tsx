@@ -37,10 +37,10 @@ function DateTimeDisplay() {
 
   return (
     <div className="flex flex-col items-end text-sm">
-      <div className="text-gray-600 font-medium">
+      <div className="text-foreground font-medium">
         {dateStr}
       </div>
-      <div className="text-gray-500">
+      <div className="text-muted-foreground">
         北京时间 {timeStr}
       </div>
     </div>

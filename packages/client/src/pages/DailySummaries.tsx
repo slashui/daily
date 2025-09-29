@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
 import { dailySummariesAPI } from '../utils/api'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Calendar, CheckCircle2, Clock, History, Play, BarChart3 } from 'lucide-react'
 
 interface DailySummary {
   id: string
@@ -73,185 +78,202 @@ function DailySummaries() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading summaries...</div>
+        <div className="text-muted-foreground">Loading summaries...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="text-red-700">Error: {error}</div>
-        <button
-          onClick={loadSummaries}
-          className="mt-2 text-red-600 hover:text-red-800 underline"
-        >
-          Retry
-        </button>
-      </div>
+      <Card className="border-destructive bg-destructive/5">
+        <CardContent className="pt-6">
+          <div className="text-destructive">Error: {error}</div>
+          <Button
+            onClick={loadSummaries}
+            variant="link"
+            className="mt-2 h-auto p-0 text-destructive hover:text-destructive/80"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">往日任务总结</h1>
-          <p className="text-gray-600 mt-1">查看历史工作台任务的完成情况</p>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <History className="h-8 w-8 text-primary" />
+            往日任务总结
+          </h1>
+          <p className="text-muted-foreground mt-1">查看历史工作台任务的完成情况</p>
         </div>
-        <button
+        <Button
           onClick={handleGenerateSummary}
           disabled={isGenerating}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
+          <Play className="h-4 w-4 mr-2" />
           {isGenerating ? '生成中...' : '生成今日总结'}
-        </button>
+        </Button>
       </div>
 
       {summaries.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-500 text-lg mb-4">
-            还没有任务总结
-          </div>
-          <p className="text-gray-400 text-sm mb-6">
-            每天凌晨1点会自动生成前一天的任务总结，你也可以手动生成
-          </p>
-          <button
-            onClick={handleGenerateSummary}
-            disabled={isGenerating}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            {isGenerating ? '生成中...' : '生成今日总结'}
-          </button>
-        </div>
+        <Card className="text-center py-16 border-border bg-card">
+          <CardContent className="space-y-4">
+            <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <div className="text-muted-foreground text-lg mb-4">
+              还没有任务总结
+            </div>
+            <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+              每天凌晨1点会自动生成前一天的任务总结，你也可以手动生成
+            </p>
+            <Button
+              onClick={handleGenerateSummary}
+              disabled={isGenerating}
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {isGenerating ? '生成中...' : '生成今日总结'}
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Summaries List */}
           <div className="space-y-4">
             {summaries.map((summary) => (
-              <div
+              <Card
                 key={summary.id}
-                className={`bg-white rounded-lg shadow p-4 cursor-pointer border-2 transition-colors ${
+                className={`cursor-pointer transition-all border-2 ${
                   selectedSummary?.id === summary.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-transparent hover:border-gray-300'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/20 bg-card'
                 }`}
                 onClick={() => setSelectedSummary(summary)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-gray-900">
-                    {formatDate(summary.summary_date)}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                      getCompletionRate(summary) >= 80
-                        ? 'bg-green-100 text-green-700'
-                        : getCompletionRate(summary) >= 50
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-foreground flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      {formatDate(summary.summary_date)}
+                    </h3>
+                    <Badge
+                      variant={getCompletionRate(summary) >= 80 ? "default" : getCompletionRate(summary) >= 50 ? "secondary" : "destructive"}
+                      className={`${
+                        getCompletionRate(summary) >= 80
+                          ? 'bg-primary text-primary-foreground'
+                          : getCompletionRate(summary) >= 50
+                          ? 'bg-secondary text-secondary-foreground'
+                          : 'bg-destructive text-destructive-foreground'
+                      }`}
+                    >
                       {getCompletionRate(summary)}%
-                    </div>
+                    </Badge>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>
-                    完成 {summary.completed_count} / {summary.total_count} 个任务
-                  </span>
-                  <span>{summary.summary_date}</span>
-                </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                    <span>
+                      完成 {summary.completed_count} / {summary.total_count} 个任务
+                    </span>
+                    <span>{summary.summary_date}</span>
+                  </div>
 
-                <div className="mt-2 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${getCompletionRate(summary)}%` }}
-                  ></div>
-                </div>
-              </div>
+                  <Progress
+                    value={getCompletionRate(summary)}
+                    className="h-2 bg-muted"
+                  />
+                </CardContent>
+              </Card>
             ))}
           </div>
 
           {/* Summary Details */}
-          <div className="bg-white rounded-lg shadow p-6">
-            {selectedSummary ? (
-              <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-4">
-                  {formatDate(selectedSummary.summary_date)} 详情
-                </h2>
+          <Card className="border-border bg-card">
+            <CardContent className="pt-6">
+              {selectedSummary ? (
+                <div className="space-y-6">
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      {formatDate(selectedSummary.summary_date)} 详情
+                    </CardTitle>
+                  </CardHeader>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {selectedSummary.completed_count}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                      <div className="text-2xl font-bold text-primary">
+                        {selectedSummary.completed_count}
+                      </div>
+                      <div className="text-sm text-primary">已完成</div>
                     </div>
-                    <div className="text-sm text-green-700">已完成</div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {selectedSummary.total_count - selectedSummary.completed_count}
+                    <div className="text-center p-4 bg-muted/50 border border-border rounded-lg">
+                      <div className="text-2xl font-bold text-muted-foreground">
+                        {selectedSummary.total_count - selectedSummary.completed_count}
+                      </div>
+                      <div className="text-sm text-muted-foreground">未完成</div>
                     </div>
-                    <div className="text-sm text-yellow-700">未完成</div>
                   </div>
-                </div>
 
-                {/* Completed Tasks */}
-                {selectedSummary.completed_todos.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-                      <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                      已完成任务 ({selectedSummary.completed_todos.length})
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedSummary.completed_todos.map((todo, index) => (
-                        <div key={index} className="flex items-center p-2 bg-green-50 rounded">
-                          <svg className="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-900">{todo.content}</div>
-                            <div className="text-xs text-gray-500">{todo.project_name}</div>
+                  {/* Completed Tasks */}
+                  {selectedSummary.completed_todos.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-foreground mb-3 flex items-center">
+                        <CheckCircle2 className="w-4 h-4 text-primary mr-2" />
+                        已完成任务 ({selectedSummary.completed_todos.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedSummary.completed_todos.map((todo, index) => (
+                          <div key={index} className="flex items-center p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                            <CheckCircle2 className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="text-sm text-foreground">{todo.content}</div>
+                              <div className="text-xs text-muted-foreground">{todo.project_name}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Pending Tasks */}
-                {selectedSummary.pending_todos.length > 0 && (
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-                      <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-                      未完成任务 ({selectedSummary.pending_todos.length})
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedSummary.pending_todos.map((todo, index) => (
-                        <div key={index} className="flex items-center p-2 bg-yellow-50 rounded">
-                          <svg className="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                          </svg>
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-900">{todo.content}</div>
-                            <div className="text-xs text-gray-500">{todo.project_name}</div>
+                  {/* Pending Tasks */}
+                  {selectedSummary.pending_todos.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-foreground mb-3 flex items-center">
+                        <Clock className="w-4 h-4 text-muted-foreground mr-2" />
+                        未完成任务 ({selectedSummary.pending_todos.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedSummary.pending_todos.map((todo, index) => (
+                          <div key={index} className="flex items-center p-3 bg-muted/30 border border-border rounded-lg">
+                            <Clock className="w-4 h-4 text-muted-foreground mr-3 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="text-sm text-foreground">{todo.content}</div>
+                              <div className="text-xs text-muted-foreground">{todo.project_name}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg mb-4">
-                  选择一个日期查看详细信息
+                  )}
                 </div>
-                <p className="text-gray-400 text-sm">
-                  点击左侧的任务总结卡片查看详情
-                </p>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="text-muted-foreground text-lg mb-4">
+                    选择一个日期查看详细信息
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    点击左侧的任务总结卡片查看详情
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
