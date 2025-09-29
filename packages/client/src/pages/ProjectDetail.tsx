@@ -384,7 +384,7 @@ function ProjectDetail() {
               </div>
             )}
           </CardContent>
-        </div>
+        </Card>
 
         {/* Daily Logs Section */}
         <Card className="border-border bg-card">
@@ -435,7 +435,6 @@ function ProjectDetail() {
             )}
           </CardContent>
         </Card>
-        </div>
       </div>
 
       {/* Requirements Editor Modal */}

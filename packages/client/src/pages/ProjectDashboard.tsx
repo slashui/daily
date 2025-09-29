@@ -100,8 +100,8 @@ function ProjectDashboard() {
         </Button>
       </div>
 
-        {/* Create Project Form */}
-        {showCreateForm && (
+      {/* Create Project Form */}
+      {showCreateForm && (
           <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle className="text-foreground">创建新项目</CardTitle>
@@ -156,8 +156,8 @@ function ProjectDashboard() {
           </Card>
         )}
 
-        {/* Projects Grid */}
-        {projects.length === 0 ? (
+      {/* Projects Grid */}
+      {projects.length === 0 ? (
           <Card className="text-center py-12 border-border bg-card">
             <CardContent className="space-y-4">
               <div className="text-muted-foreground text-lg">还没有项目</div>
@@ -182,7 +182,6 @@ function ProjectDashboard() {
             ))}
           </div>
         )}
-      </div>
     </div>
   )
 }
