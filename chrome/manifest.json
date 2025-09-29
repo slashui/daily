@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Daily Workbench Tasks",
+  "version": "1.0",
+  "description": "Display daily workbench tasks",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.svg"
+    }
+  },
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://project-workbench-api.bassnova.workers.dev/*"
+  ]
+}

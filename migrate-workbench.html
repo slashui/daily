@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>工作台数据迁移</title>
+</head>
+<body>
+    <h1>工作台数据迁移工具</h1>
+    <div id="status"></div>
+    <button onclick="checkLocalData()">检查本地数据</button>
+    <button onclick="migrateData()">迁移数据到服务器</button>
+
+    <script>
+        const API_BASE_URL = 'https://project-workbench-api.bassnova.workers.dev/api';
+
+        function checkLocalData() {
+            const workbenchData = localStorage.getItem('workbench-storage');
+            const status = document.getElementById('status');
+
+            if (workbenchData) {
+                const data = JSON.parse(workbenchData);
+                status.innerHTML = `
+                    <h3>本地数据：</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } else {
+                status.innerHTML = '<p>没有找到本地工作台数据</p>';
+            }
+        }
+
+        async function migrateData() {
+            const workbenchData = localStorage.getItem('workbench-storage');
+            const status = document.getElementById('status');
+
+            if (!workbenchData) {
+                status.innerHTML = '<p style="color: red;">没有找到本地数据</p>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(workbenchData);
+                const todoIds = data.state?.todayTodoIds || [];
+
+                if (todoIds.length === 0) {
+                    status.innerHTML = '<p>本地没有今日任务需要迁移</p>';
+                    return;
+                }
+
+                status.innerHTML = `<p>正在迁移 ${todoIds.length} 个任务...</p>`;
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const todoId of todoIds) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/daily-workbench/add`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ todo_id: todoId })
+                        });
+
+                        if (response.ok) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                            console.error(`Failed to migrate todo ${todoId}`);
+                        }
+                    } catch (err) {
+                        errorCount++;
+                        console.error(`Error migrating todo ${todoId}:`, err);
+                    }
+                }
+
+                status.innerHTML = `
+                    <h3>迁移完成！</h3>
+                    <p>成功: ${successCount} 个任务</p>
+                    <p>失败: ${errorCount} 个任务</p>
+                    <p><strong>现在可以清除本地数据了</strong></p>
+                    <button onclick="clearLocalData()">清除本地数据</button>
+                `;
+
+            } catch (err) {
+                status.innerHTML = `<p style="color: red;">迁移失败: ${err.message}</p>`;
+            }
+        }
+
+        function clearLocalData() {
+            localStorage.removeItem('workbench-storage');
+            document.getElementById('status').innerHTML = '<p style="color: green;">本地数据已清除</p>';
+        }
+    </script>
+</body>
+</html>

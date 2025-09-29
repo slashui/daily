@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Project {
+  id               String    @id @default(cuid())
+  name             String
+  description      String?
+  requirements     String?   // Markdown content for project requirements
+  status           String    @default("active") // 'active', 'archived', 'on-hold'
+  is_hidden        Boolean   @default(false) // Hide from project list
+  created_at       DateTime  @default(now())
+  last_updated_at  DateTime  @default(now())
+  todos            Todo[]
+  dailyLogs        DailyLog[]
+}
+
+model Todo {
+  id              String           @id @default(cuid())
+  project_id      String
+  content         String
+  is_completed    Boolean          @default(false)
+  due_date        DateTime?
+  created_at      DateTime         @default(now())
+  completed_at    DateTime?
+  project         Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  dailyWorkbench  DailyWorkbench[]
+}
+
+model DailyLog {
+  id         String   @id @default(cuid())
+  project_id String
+  content    String
+  log_date   DateTime @default(now())
+  created_at DateTime @default(now())
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+}
+
+model HistoricalWorkbench {
+  id             String   @id @default(cuid())
+  workbench_date String   // Format: YYYY-MM-DD
+  snapshot_data  String   // JSON string containing todos and their states
+  created_at     DateTime @default(now())
+
+  @@unique([workbench_date])
+}
+
+model DailyWorkbench {
+  id         String   @id @default(cuid())
+  todo_id    String   // Reference to Todo.id
+  work_date  String   // Format: YYYY-MM-DD (Beijing time)
+  added_at   DateTime @default(now())
+  todo       Todo     @relation(fields: [todo_id], references: [id], onDelete: Cascade)
+
+  @@unique([todo_id, work_date])
+}
+
+model DailySummary {
+  id              String   @id @default(cuid())
+  summary_date    String   // Format: YYYY-MM-DD (Beijing time)
+  completed_todos String   // JSON string of completed todos
+  pending_todos   String   // JSON string of pending todos
+  total_count     Int      @default(0)
+  completed_count Int      @default(0)
+  created_at      DateTime @default(now())
+
+  @@unique([summary_date])
+}

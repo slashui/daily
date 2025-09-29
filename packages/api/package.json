@@ -1,0 +1,21 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231121.0",
+    "@prisma/adapter-d1": "^5.7.1",
+    "prisma": "^5.7.1",
+    "wrangler": "^3.19.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "hono": "^3.11.7"
+  }
+}

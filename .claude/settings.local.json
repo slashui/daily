@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx wrangler d1 create:*)",
+      "Bash(npx wrangler d1 list:*)",
+      "Bash(npx wrangler d1 execute:*)",
+      "Bash(npm run deploy:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run preview:*)",
+      "Bash(npx wrangler pages project:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(DEBUG=1 npx wrangler dev --log-level debug)",
+      "Bash(tasklist)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(tasklist:*)",
+      "Bash(env -u:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

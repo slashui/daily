@@ -1,0 +1,12 @@
+name = "project-workbench-api"
+main = "src/index.ts"
+compatibility_date = "2023-12-01"
+
+# Cron trigger for daily summary at 1 AM Beijing time (17:00 UTC)
+[triggers]
+crons = ["0 17 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "project-workbench-db"
+database_id = "1ad2c7c1-6515-4bf8-98fa-6b25f2338c46"

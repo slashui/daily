@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>每日工作台任务</title>
+  <style>
+    body {
+      width: 400px;
+      min-height: 300px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .header {
+      background-color: #4285F4;
+      color: white;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .task-list {
+      padding: 12px;
+    }
+    .project-group {
+      margin-bottom: 16px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .project-header {
+      background-color: #e8f0fe;
+      padding: 8px 12px;
+      font-weight: bold;
+      color: #1a73e8;
+      border-bottom: 1px solid #dadce0;
+    }
+    .task-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+    }
+    .task-item:last-child {
+      border-bottom: none;
+    }
+    .task-checkbox {
+      margin-right: 8px;
+    }
+    .task-completed {
+      text-decoration: line-through;
+      color: #5f6368;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #5f6368;
+    }
+    .error {
+      color: #d93025;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header" id="date-header">今日任务</div>
+  <div id="content" class="task-list">
+    <div class="loading">加载中...</div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
