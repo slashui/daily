@@ -327,6 +327,35 @@ app.post('/api/logs', async (c) => {
   }
 })
 
+// DELETE /api/logs/:id - Delete daily log
+app.delete('/api/logs/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    // First get the log to find project_id
+    const log = await prisma.dailyLog.findUnique({ where: { id } })
+    if (!log) {
+      return c.json({ error: 'Log not found' }, 404)
+    }
+
+    // Use sequential operations since D1 doesn't support interactive transactions
+    await prisma.dailyLog.delete({ where: { id } })
+
+    // Update project's last_updated_at
+    await prisma.project.update({
+      where: { id: log.project_id },
+      data: { last_updated_at: new Date() }
+    })
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting log:', error)
+    return c.json({ error: 'Failed to delete log' }, 500)
+  }
+})
+
 // ===== HISTORICAL WORKBENCH API =====
 
 // POST /api/workbench/save - Save daily workbench snapshot
@@ -770,6 +799,162 @@ app.post('/api/daily-summaries/generate', async (c) => {
   }
 })
 
+// PUT /api/daily-summaries/:date/manual - Update manual summary for a specific date
+app.put('/api/daily-summaries/:date/manual', async (c) => {
+  try {
+    const date = c.req.param('date')
+    const { manual_summary } = await c.req.json()
+
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return c.json({ error: 'Invalid date format. Use YYYY-MM-DD' }, 400)
+    }
+
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    // Check if summary exists, if not create it
+    const existing = await prisma.dailySummary.findUnique({
+      where: { summary_date: date }
+    })
+
+    let summary
+    if (existing) {
+      // Update existing summary
+      summary = await prisma.dailySummary.update({
+        where: { summary_date: date },
+        data: { manual_summary: manual_summary || null }
+      })
+    } else {
+      // Create new summary with empty task data
+      summary = await prisma.dailySummary.create({
+        data: {
+          summary_date: date,
+          completed_todos: JSON.stringify([]),
+          pending_todos: JSON.stringify([]),
+          total_count: 0,
+          completed_count: 0,
+          manual_summary: manual_summary || null
+        }
+      })
+    }
+
+    // Parse JSON strings back to objects
+    const formattedSummary = {
+      ...summary,
+      completed_todos: JSON.parse(summary.completed_todos),
+      pending_todos: JSON.parse(summary.pending_todos)
+    }
+
+    return c.json(formattedSummary)
+  } catch (error) {
+    console.error('Error updating manual summary:', error)
+    return c.json({ error: 'Failed to update manual summary' }, 500)
+  }
+})
+
+// ===== KNOWLEDGE BASE API =====
+
+// GET /api/knowledge - Get all knowledge entries
+app.get('/api/knowledge', async (c) => {
+  try {
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    const knowledge = await prisma.knowledgeBase.findMany({
+      orderBy: { created_at: 'desc' }
+    })
+
+    return c.json(knowledge)
+  } catch (error) {
+    console.error('Error fetching knowledge:', error)
+    return c.json({ error: 'Failed to fetch knowledge' }, 500)
+  }
+})
+
+// POST /api/knowledge - Create new knowledge entry
+app.post('/api/knowledge', async (c) => {
+  try {
+    const { title, content } = await c.req.json()
+
+    if (!title || typeof title !== 'string') {
+      return c.json({ error: 'Title is required' }, 400)
+    }
+
+    if (!content || typeof content !== 'string') {
+      return c.json({ error: 'Content is required' }, 400)
+    }
+
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    const knowledge = await prisma.knowledgeBase.create({
+      data: {
+        title: title.trim(),
+        content: content.trim()
+      }
+    })
+
+    return c.json(knowledge, 201)
+  } catch (error) {
+    console.error('Error creating knowledge:', error)
+    return c.json({ error: 'Failed to create knowledge' }, 500)
+  }
+})
+
+// PUT /api/knowledge/:id - Update knowledge entry
+app.put('/api/knowledge/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const { title, content } = await c.req.json()
+
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    // Check if knowledge exists
+    const existing = await prisma.knowledgeBase.findUnique({ where: { id } })
+    if (!existing) {
+      return c.json({ error: 'Knowledge entry not found' }, 404)
+    }
+
+    const knowledge = await prisma.knowledgeBase.update({
+      where: { id },
+      data: {
+        ...(title && { title: title.trim() }),
+        ...(content && { content: content.trim() }),
+        updated_at: new Date()
+      }
+    })
+
+    return c.json(knowledge)
+  } catch (error) {
+    console.error('Error updating knowledge:', error)
+    return c.json({ error: 'Failed to update knowledge' }, 500)
+  }
+})
+
+// DELETE /api/knowledge/:id - Delete knowledge entry
+app.delete('/api/knowledge/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    // Check if knowledge exists
+    const existing = await prisma.knowledgeBase.findUnique({ where: { id } })
+    if (!existing) {
+      return c.json({ error: 'Knowledge entry not found' }, 404)
+    }
+
+    await prisma.knowledgeBase.delete({ where: { id } })
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting knowledge:', error)
+    return c.json({ error: 'Failed to delete knowledge' }, 500)
+  }
+})
+
 // Scheduled function (Cron trigger)
 export default {
   async fetch(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
@@ -790,8 +975,31 @@ export default {
       yesterday.setDate(yesterday.getDate() - 1)
       const yesterdayStr = yesterday.toISOString().split('T')[0]
 
+      // Generate summary for yesterday
       await createDailySummary(yesterdayStr, prisma)
       console.log(`Daily summary created for ${yesterdayStr}`)
+
+      // Create today's blank summary for manual input
+      const todayStr = beijingTime.toISOString().split('T')[0]
+      const existingToday = await prisma.dailySummary.findUnique({
+        where: { summary_date: todayStr }
+      })
+
+      if (!existingToday) {
+        await prisma.dailySummary.create({
+          data: {
+            summary_date: todayStr,
+            completed_todos: JSON.stringify([]),
+            pending_todos: JSON.stringify([]),
+            total_count: 0,
+            completed_count: 0,
+            manual_summary: null
+          }
+        })
+        console.log(`Blank summary created for today: ${todayStr}`)
+      } else {
+        console.log(`Summary for today (${todayStr}) already exists`)
+      }
 
     } catch (error) {
       console.error('Error in scheduled task:', error)

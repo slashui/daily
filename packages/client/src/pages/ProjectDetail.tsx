@@ -158,6 +158,22 @@ function ProjectDetail() {
     }
   }
 
+  const handleDeleteLog = async (logId: string) => {
+    if (!project || !confirm('确认删除此工作日志？')) return
+
+    try {
+      await logsAPI.delete(logId)
+
+      // Update project state
+      setProject({
+        ...project,
+        dailyLogs: project.dailyLogs.filter(log => log.id !== logId)
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete log')
+    }
+  }
+
   const handleToggleWorkbench = async (todoId: string) => {
     const isInToday = todayTodos.includes(todoId)
     try {
@@ -423,12 +439,20 @@ function ProjectDetail() {
             ) : (
               <div className="space-y-4">
                 {project.dailyLogs.map((log) => (
-                  <div key={log.id} className="border-l-4 border-primary pl-4 bg-primary/5 p-4 rounded-r-lg">
+                  <div key={log.id} className="border-l-4 border-primary pl-4 bg-primary/5 p-4 rounded-r-lg relative group">
                     <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                       <Calendar className="h-3 w-3" />
                       {new Date(log.log_date).toLocaleDateString('zh-CN')} {new Date(log.log_date).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}
                     </div>
                     <div className="text-foreground whitespace-pre-wrap">{log.content}</div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteLog(log.id)}
+                      className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

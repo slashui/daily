@@ -83,6 +83,11 @@ export const logsAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  delete: (id: string): Promise<{ success: boolean }> =>
+    apiRequest(`/logs/${id}`, {
+      method: 'DELETE',
+    }),
 }
 
 // Daily Workbench API
@@ -118,5 +123,34 @@ export const dailySummariesAPI = {
     apiRequest('/daily-summaries/generate', {
       method: 'POST',
       body: JSON.stringify({ date }),
+    }),
+
+  updateManualSummary: (date: string, manualSummary: string): Promise<any> =>
+    apiRequest(`/daily-summaries/${date}/manual`, {
+      method: 'PUT',
+      body: JSON.stringify({ manual_summary: manualSummary }),
+    }),
+}
+
+// Knowledge Base API
+export const knowledgeAPI = {
+  getAll: (): Promise<any[]> =>
+    apiRequest('/knowledge'),
+
+  create: (data: { title: string; content: string }): Promise<any> =>
+    apiRequest('/knowledge', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: { title?: string; content?: string }): Promise<any> =>
+    apiRequest(`/knowledge/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string): Promise<{ success: boolean }> =>
+    apiRequest(`/knowledge/${id}`, {
+      method: 'DELETE',
     }),
 }
