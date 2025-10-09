@@ -524,6 +524,41 @@ async function createDailySummary(date: string, prisma: any) {
       })
     }
 
+    // Collect daily logs created on this date
+    const dailyLogs = await prisma.dailyLog.findMany({
+      where: {
+        log_date: {
+          gte: new Date(date + 'T00:00:00.000Z'),
+          lt: new Date(date + 'T23:59:59.999Z')
+        }
+      },
+      include: {
+        project: true
+      },
+      orderBy: {
+        log_date: 'asc'
+      }
+    })
+
+    // Group logs by project
+    const logsByProject = {}
+    dailyLogs.forEach(log => {
+      const projectId = log.project_id
+      if (!logsByProject[projectId]) {
+        logsByProject[projectId] = {
+          project_id: projectId,
+          project_name: log.project.name,
+          logs: []
+        }
+      }
+      logsByProject[projectId].logs.push({
+        id: log.id,
+        content: log.content,
+        log_date: log.log_date.toISOString()
+      })
+    })
+
+    const dailyLogsArray = Object.values(logsByProject)
 
     // Check if summary already exists
     const existingSummary = await prisma.dailySummary.findUnique({
@@ -535,7 +570,8 @@ async function createDailySummary(date: string, prisma: any) {
       completed_todos: JSON.stringify(completedTodos),
       pending_todos: JSON.stringify(pendingTodos),
       total_count: workbenchEntries.length,
-      completed_count: completedTodos.length
+      completed_count: completedTodos.length,
+      daily_logs: JSON.stringify(dailyLogsArray)
     }
 
     if (existingSummary) {
@@ -734,7 +770,8 @@ app.get('/api/daily-summaries', async (c) => {
     const formattedSummaries = summaries.map(summary => ({
       ...summary,
       completed_todos: JSON.parse(summary.completed_todos),
-      pending_todos: JSON.parse(summary.pending_todos)
+      pending_todos: JSON.parse(summary.pending_todos),
+      daily_logs: summary.daily_logs ? JSON.parse(summary.daily_logs) : []
     }))
 
     return c.json(formattedSummaries)
@@ -768,7 +805,8 @@ app.get('/api/daily-summaries/:date', async (c) => {
     const formattedSummary = {
       ...summary,
       completed_todos: JSON.parse(summary.completed_todos),
-      pending_todos: JSON.parse(summary.pending_todos)
+      pending_todos: JSON.parse(summary.pending_todos),
+      daily_logs: summary.daily_logs ? JSON.parse(summary.daily_logs) : []
     }
 
     return c.json(formattedSummary)
@@ -843,7 +881,8 @@ app.put('/api/daily-summaries/:date/manual', async (c) => {
     const formattedSummary = {
       ...summary,
       completed_todos: JSON.parse(summary.completed_todos),
-      pending_todos: JSON.parse(summary.pending_todos)
+      pending_todos: JSON.parse(summary.pending_todos),
+      daily_logs: summary.daily_logs ? JSON.parse(summary.daily_logs) : []
     }
 
     return c.json(formattedSummary)

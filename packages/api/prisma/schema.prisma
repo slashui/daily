@@ -68,7 +68,18 @@ model DailySummary {
   pending_todos   String   // JSON string of pending todos
   total_count     Int      @default(0)
   completed_count Int      @default(0)
+  manual_summary  String?  // User's manual summary/notes for the day
+  daily_logs      String?  // JSON string of daily logs from all projects
+  daily_log_ai    String?  // AI-generated summary of daily logs (reserved for future use)
   created_at      DateTime @default(now())
 
   @@unique([summary_date])
+}
+
+model KnowledgeBase {
+  id         String   @id @default(cuid())
+  title      String   // Knowledge entry title
+  content    String   // Knowledge entry content
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
 }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Calendar, CheckCircle2, Clock, History, Play, BarChart3 } from 'lucide-react'
+import { Calendar, CheckCircle2, Clock, History, Play, BarChart3, FileText } from 'lucide-react'
 
 interface DailySummary {
   id: string
@@ -20,8 +20,19 @@ interface DailySummary {
     content: string
     project_name: string
   }>
+  daily_logs: Array<{
+    project_id: string
+    project_name: string
+    logs: Array<{
+      id: string
+      content: string
+      log_date: string
+    }>
+  }>
   total_count: number
   completed_count: number
+  manual_summary: string | null
+  daily_log_ai: string | null
   created_at: string
 }
 
@@ -31,6 +42,8 @@ function DailySummaries() {
   const [error, setError] = useState<string | null>(null)
   const [selectedSummary, setSelectedSummary] = useState<DailySummary | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [manualSummaryText, setManualSummaryText] = useState('')
+  const [isSavingManual, setIsSavingManual] = useState(false)
 
   useEffect(() => {
     loadSummaries()
@@ -74,6 +87,37 @@ function DailySummaries() {
     if (summary.total_count === 0) return 0
     return Math.round((summary.completed_count / summary.total_count) * 100)
   }
+
+  const handleSaveManualSummary = async () => {
+    if (!selectedSummary) return
+
+    try {
+      setIsSavingManual(true)
+      const updatedSummary = await dailySummariesAPI.updateManualSummary(
+        selectedSummary.summary_date,
+        manualSummaryText
+      )
+
+      // Update the summaries list
+      setSummaries(summaries.map(s =>
+        s.id === selectedSummary.id ? updatedSummary : s
+      ))
+
+      // Update selected summary
+      setSelectedSummary(updatedSummary)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save manual summary')
+    } finally {
+      setIsSavingManual(false)
+    }
+  }
+
+  // Update manual summary text when selected summary changes
+  useEffect(() => {
+    if (selectedSummary) {
+      setManualSummaryText(selectedSummary.manual_summary || '')
+    }
+  }, [selectedSummary])
 
   if (loading) {
     return (
@@ -254,6 +298,58 @@ function DailySummaries() {
                             <div className="flex-1">
                               <div className="text-sm text-foreground">{todo.content}</div>
                               <div className="text-xs text-muted-foreground">{todo.project_name}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual Summary Section */}
+                  <div className="border-t border-border pt-6">
+                    <h3 className="font-medium text-foreground mb-3">手工总结</h3>
+                    <div className="space-y-3">
+                      <textarea
+                        value={manualSummaryText}
+                        onChange={(e) => setManualSummaryText(e.target.value)}
+                        placeholder="记录今天的工作心得、遇到的问题、解决方案或其他想法..."
+                        rows={8}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground resize-none"
+                        disabled={isSavingManual}
+                      />
+                      <Button
+                        onClick={handleSaveManualSummary}
+                        disabled={isSavingManual}
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        {isSavingManual ? '保存中...' : '保存总结'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Daily Logs Section */}
+                  {selectedSummary.daily_logs && selectedSummary.daily_logs.length > 0 && (
+                    <div className="border-t border-border pt-6">
+                      <h3 className="font-medium text-foreground mb-3 flex items-center">
+                        <FileText className="w-4 h-4 text-primary mr-2" />
+                        当天工作日志 ({selectedSummary.daily_logs.reduce((sum, project) => sum + project.logs.length, 0)})
+                      </h3>
+                      <div className="space-y-6">
+                        {selectedSummary.daily_logs.map((projectLog) => (
+                          <div key={projectLog.project_id} className="space-y-3">
+                            <div className="font-medium text-sm text-primary flex items-center gap-2">
+                              <div className="h-1 w-1 rounded-full bg-primary" />
+                              {projectLog.project_name}
+                            </div>
+                            <div className="space-y-3 ml-3">
+                              {projectLog.logs.map((log) => (
+                                <div key={log.id} className="border-l-4 border-primary pl-4 bg-primary/5 p-3 rounded-r-lg">
+                                  <div className="text-xs text-muted-foreground mb-2">
+                                    {new Date(log.log_date).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}
+                                  </div>
+                                  <div className="text-sm text-foreground whitespace-pre-wrap">{log.content}</div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         ))}
