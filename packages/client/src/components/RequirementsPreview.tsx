@@ -28,23 +28,23 @@ function RequirementsPreview({ requirements, isVisible, onClose }: RequirementsP
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
-          isAnimating ? 'opacity-25' : 'opacity-0'
+          isAnimating ? 'opacity-50' : 'opacity-0'
         }`}
         onClick={handleClose}
       />
 
       {/* Slide Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-96 bg-card border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
           isAnimating ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">项目需求</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">项目需求</h2>
           <button
             onClick={handleClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-md"
+            className="p-2 text-muted-foreground hover:text-foreground rounded-md"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -56,12 +56,12 @@ function RequirementsPreview({ requirements, isVisible, onClose }: RequirementsP
         <div className="p-4 h-full overflow-y-auto pb-20">
           {requirements ? (
             <div
-              className="prose prose-sm max-w-none"
+              className="prose prose-invert prose-slate prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: parseMarkdown(requirements) }}
             />
           ) : (
             <div className="flex items-center justify-center h-32">
-              <p className="text-gray-500 text-center">
+              <p className="text-muted-foreground text-center">
                 暂无项目需求<br />
                 <span className="text-sm">可在项目详情页面添加</span>
               </p>

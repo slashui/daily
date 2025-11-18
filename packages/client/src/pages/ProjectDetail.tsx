@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Project, CreateTodoData, CreateLogData } from '../types'
 import { projectsAPI, todosAPI, logsAPI, dailyWorkbenchAPI } from '../utils/api'
-import MarkdownEditor from '../components/MarkdownEditor'
-import RequirementsPreview from '../components/RequirementsPreview'
+import DocumentViewer from '../components/DocumentViewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,8 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
-import { ArrowLeft, Plus, Calendar, CheckCircle2, Clock, FileText, Edit, X, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, Calendar, CheckCircle2, Clock, FileText, BookOpen, ListChecks, Trash2, X } from 'lucide-react'
 
 function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
@@ -28,11 +26,10 @@ function ProjectDetail() {
   const [newLogContent, setNewLogContent] = useState('')
   const [logLoading, setLogLoading] = useState(false)
 
-  // Requirements state
-  const [isEditingRequirements, setIsEditingRequirements] = useState(false)
-  const [requirementsContent, setRequirementsContent] = useState('')
-  const [requirementsLoading, setRequirementsLoading] = useState(false)
-  const [showRequirementsPreview, setShowRequirementsPreview] = useState(false)
+  // Document viewer state
+  const [showRequirementsViewer, setShowRequirementsViewer] = useState(false)
+  const [showReadmeViewer, setShowReadmeViewer] = useState(false)
+  const [showLogViewer, setShowLogViewer] = useState(false)
 
   // Today's workbench todos (to check if todo is in today's list)
   const [todayTodos, setTodayTodos] = useState<string[]>([])
@@ -49,7 +46,6 @@ function ProjectDetail() {
       setLoading(true)
       const data = await projectsAPI.getById(projectId)
       setProject(data)
-      setRequirementsContent(data.requirements || '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project')
     } finally {
@@ -189,26 +185,36 @@ function ProjectDetail() {
     }
   }
 
-  const handleSaveRequirements = async () => {
+  const handleSaveRequirements = async (content: string) => {
     if (!project) return
 
     try {
-      setRequirementsLoading(true)
       const updatedProject = await projectsAPI.update(project.id, {
-        requirements: requirementsContent.trim() || undefined
+        requirements: content.trim() || undefined
       })
       setProject(updatedProject)
-      setIsEditingRequirements(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save requirements')
-    } finally {
-      setRequirementsLoading(false)
+      throw err
     }
   }
 
-  const handleCancelRequirements = () => {
-    setRequirementsContent(project?.requirements || '')
-    setIsEditingRequirements(false)
+  const handleSaveReadme = async (content: string) => {
+    if (!project) return
+
+    try {
+      const updatedProject = await projectsAPI.update(project.id, {
+        readme: content.trim() || undefined
+      })
+      setProject(updatedProject)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save readme')
+      throw err
+    }
+  }
+
+  const removeTodoFromToday = (todoId: string) => {
+    setTodayTodos(prev => prev.filter(id => id !== todoId))
   }
 
   if (loading) {
@@ -292,26 +298,34 @@ function ProjectDetail() {
             </div>
           </div>
 
-          {/* Requirements buttons */}
+          {/* Document buttons */}
           <div className="flex gap-3 ml-6">
-            {project.requirements && (
-              <Button
-                onClick={() => setShowRequirementsPreview(true)}
-                variant="outline"
-                size="sm"
-                className="border-primary/20 text-primary hover:bg-primary/10"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                查看需求
-              </Button>
-            )}
             <Button
-              onClick={() => setIsEditingRequirements(true)}
+              onClick={() => setShowRequirementsViewer(true)}
+              variant="outline"
               size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="border-border text-foreground hover:bg-accent"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              {project.requirements ? '编辑需求' : '添加需求'}
+              <FileText className="h-4 w-4 mr-2" />
+              需求文档
+            </Button>
+            <Button
+              onClick={() => setShowReadmeViewer(true)}
+              variant="outline"
+              size="sm"
+              className="border-border text-foreground hover:bg-accent"
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              Readme
+            </Button>
+            <Button
+              onClick={() => setShowLogViewer(true)}
+              variant="outline"
+              size="sm"
+              className="border-border text-foreground hover:bg-accent"
+            >
+              <ListChecks className="h-4 w-4 mr-2" />
+              Log
             </Button>
           </div>
         </div>
@@ -461,55 +475,54 @@ function ProjectDetail() {
         </Card>
       </div>
 
-      {/* Requirements Editor Modal */}
-      {isEditingRequirements && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">
-                {project.requirements ? '编辑项目需求' : '添加项目需求'}
-              </h2>
+      {/* Document Viewers */}
+      <DocumentViewer
+        isVisible={showRequirementsViewer}
+        onClose={() => setShowRequirementsViewer(false)}
+        title="需求文档"
+        content={project.requirements}
+        onSave={handleSaveRequirements}
+        placeholder="输入项目需求文档..."
+      />
+
+      <DocumentViewer
+        isVisible={showReadmeViewer}
+        onClose={() => setShowReadmeViewer(false)}
+        title="Readme"
+        content={project.readme}
+        onSave={handleSaveReadme}
+        placeholder="输入项目 README..."
+      />
+
+      {/* TODO: Log Viewer will show ProjectLog management interface */}
+      {showLogViewer && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-end z-50">
+          <div
+            className="absolute inset-0"
+            onClick={() => setShowLogViewer(false)}
+          />
+          <div
+            className="relative bg-card border-l border-border h-full w-full max-w-3xl overflow-hidden animate-in slide-in-from-right duration-300"
+          >
+            <div className="flex items-center justify-between p-6 border-b border-border bg-card/95 backdrop-blur">
+              <h2 className="text-2xl font-bold text-foreground">项目日志</h2>
               <Button
-                onClick={handleCancelRequirements}
+                onClick={() => setShowLogViewer(false)}
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-              <MarkdownEditor
-                value={requirementsContent}
-                onChange={setRequirementsContent}
-                onSave={handleSaveRequirements}
-                onCancel={handleCancelRequirements}
-                placeholder="输入项目需求文档...
-
-支持 Markdown 格式：
-# 标题
-## 子标题
-**粗体** *斜体*
-`代码`
-- 列表项
-1. 有序列表
-
-```
-代码块
-```"
-                isLoading={requirementsLoading}
-              />
+            <div className="h-[calc(100vh-88px)] overflow-y-auto p-6">
+              <div className="text-muted-foreground text-center py-8">
+                项目日志功能开发中...
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Requirements Preview Panel */}
-      <RequirementsPreview
-        requirements={project.requirements}
-        isVisible={showRequirementsPreview}
-        onClose={() => setShowRequirementsPreview(false)}
-      />
     </div>
   )
 }

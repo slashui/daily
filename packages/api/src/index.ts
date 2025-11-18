@@ -102,6 +102,9 @@ app.get('/api/projects/:id', async (c) => {
         },
         dailyLogs: {
           orderBy: { log_date: 'desc' }
+        },
+        projectLogs: {
+          orderBy: { log_date: 'desc' }
         }
       }
     })
@@ -121,7 +124,7 @@ app.get('/api/projects/:id', async (c) => {
 app.put('/api/projects/:id', async (c) => {
   try {
     const id = c.req.param('id')
-    const { name, description, requirements, status } = await c.req.json()
+    const { name, description, requirements, readme, status } = await c.req.json()
 
     const adapter = new PrismaD1(c.env.DB)
     const prisma = new PrismaClient({ adapter })
@@ -132,6 +135,7 @@ app.put('/api/projects/:id', async (c) => {
         ...(name && { name }),
         ...(description !== undefined && { description }),
         ...(requirements !== undefined && { requirements }),
+        ...(readme !== undefined && { readme }),
         ...(status && { status }),
         last_updated_at: new Date()
       },
@@ -353,6 +357,123 @@ app.delete('/api/logs/:id', async (c) => {
   } catch (error) {
     console.error('Error deleting log:', error)
     return c.json({ error: 'Failed to delete log' }, 500)
+  }
+})
+
+// ===== PROJECT LOGS API =====
+
+// GET /api/project-logs/:projectId - Get all project logs for a project
+app.get('/api/project-logs/:projectId', async (c) => {
+  try {
+    const projectId = c.req.param('projectId')
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    const logs = await prisma.projectLog.findMany({
+      where: { project_id: projectId },
+      orderBy: { log_date: 'desc' }
+    })
+
+    return c.json(logs)
+  } catch (error) {
+    console.error('Error fetching project logs:', error)
+    return c.json({ error: 'Failed to fetch project logs' }, 500)
+  }
+})
+
+// POST /api/project-logs - Create project log
+app.post('/api/project-logs', async (c) => {
+  try {
+    const { project_id, content, status } = await c.req.json()
+
+    if (!content || typeof content !== 'string') {
+      return c.json({ error: 'Log content is required' }, 400)
+    }
+
+    if (!project_id || typeof project_id !== 'string') {
+      return c.json({ error: 'Project ID is required' }, 400)
+    }
+
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    const log = await prisma.projectLog.create({
+      data: {
+        content,
+        project_id,
+        status: status || 'pending',
+        log_date: new Date()
+      }
+    })
+
+    // Update project's last_updated_at
+    await prisma.project.update({
+      where: { id: project_id },
+      data: { last_updated_at: new Date() }
+    })
+
+    return c.json(log, 201)
+  } catch (error) {
+    console.error('Error creating project log:', error)
+    return c.json({ error: 'Failed to create project log' }, 500)
+  }
+})
+
+// PUT /api/project-logs/:id - Update project log
+app.put('/api/project-logs/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const { content, status } = await c.req.json()
+
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    const log = await prisma.projectLog.update({
+      where: { id },
+      data: {
+        ...(content !== undefined && { content }),
+        ...(status && { status })
+      }
+    })
+
+    // Update project's last_updated_at
+    await prisma.project.update({
+      where: { id: log.project_id },
+      data: { last_updated_at: new Date() }
+    })
+
+    return c.json(log)
+  } catch (error) {
+    console.error('Error updating project log:', error)
+    return c.json({ error: 'Failed to update project log' }, 500)
+  }
+})
+
+// DELETE /api/project-logs/:id - Delete project log
+app.delete('/api/project-logs/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const adapter = new PrismaD1(c.env.DB)
+    const prisma = new PrismaClient({ adapter })
+
+    // First get the log to find project_id
+    const log = await prisma.projectLog.findUnique({ where: { id } })
+    if (!log) {
+      return c.json({ error: 'Project log not found' }, 404)
+    }
+
+    await prisma.projectLog.delete({ where: { id } })
+
+    // Update project's last_updated_at
+    await prisma.project.update({
+      where: { id: log.project_id },
+      data: { last_updated_at: new Date() }
+    })
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting project log:', error)
+    return c.json({ error: 'Failed to delete project log' }, 500)
   }
 })
 

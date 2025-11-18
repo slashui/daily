@@ -3,6 +3,7 @@ import ProjectDashboard from './pages/ProjectDashboard'
 import ProjectDetail from './pages/ProjectDetail'
 import DailyWorkbench from './pages/DailyWorkbench'
 import DailySummaries from './pages/DailySummaries'
+import KnowledgeBase from './pages/KnowledgeBase'
 import DateTimeDisplay from './components/DateTimeDisplay'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -71,6 +72,22 @@ function App() {
                     </Button>
                   )}
                 </NavLink>
+                <NavLink to="/knowledge">
+                  {({ isActive }) => (
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      工作知识库
+                    </Button>
+                  )}
+                </NavLink>
               </div>
             </div>
 
@@ -89,6 +106,7 @@ function App() {
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/workbench" element={<DailyWorkbench />} />
           <Route path="/summaries" element={<DailySummaries />} />
+          <Route path="/knowledge" element={<KnowledgeBase />} />
         </Routes>
       </main>
     </div>

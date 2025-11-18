@@ -23,16 +23,16 @@ function MarkdownEditor({
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit')
 
   return (
-    <div className="border border-gray-300 rounded-md">
+    <div className="border border-border rounded-md bg-card">
       {/* Tab Headers */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-border">
         <button
           type="button"
           onClick={() => setActiveTab('edit')}
           className={`px-4 py-2 text-sm font-medium ${
             activeTab === 'edit'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           编辑
@@ -42,8 +42,8 @@ function MarkdownEditor({
           onClick={() => setActiveTab('preview')}
           className={`px-4 py-2 text-sm font-medium ${
             activeTab === 'preview'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           预览
@@ -51,33 +51,33 @@ function MarkdownEditor({
       </div>
 
       {/* Content Area */}
-      <div className="p-3">
+      <div className="p-3 bg-background">
         {activeTab === 'edit' ? (
           <textarea
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={12}
-            className="w-full resize-none border-0 focus:outline-none focus:ring-0 p-0 font-mono text-sm"
+            className="w-full resize-none border-0 focus:outline-none focus:ring-0 p-0 font-mono text-sm bg-background text-foreground placeholder:text-muted-foreground"
             style={{ minHeight: '200px' }}
           />
         ) : (
           <div
-            className="min-h-[200px] text-sm"
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(value) || '<p class="text-gray-500">暂无内容</p>' }}
+            className="min-h-[200px] text-sm prose prose-invert prose-slate max-w-none"
+            dangerouslySetInnerHTML={{ __html: parseMarkdown(value) || '<p class="text-muted-foreground">暂无内容</p>' }}
           />
         )}
       </div>
 
       {/* Action Buttons */}
       {(onSave || onCancel) && (
-        <div className="border-t border-gray-200 p-3 flex justify-end gap-2">
+        <div className="border-t border-border p-3 flex justify-end gap-2">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
               disabled={isLoading}
-              className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm text-foreground bg-background border border-border rounded-md hover:bg-accent"
             >
               取消
             </button>
@@ -87,7 +87,7 @@ function MarkdownEditor({
               type="button"
               onClick={onSave}
               disabled={isLoading}
-              className="px-4 py-2 text-sm text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+              className="px-4 py-2 text-sm text-primary-foreground bg-primary border border-transparent rounded-md hover:bg-primary/90 disabled:bg-primary/50"
             >
               {isLoading ? '保存中...' : '保存'}
             </button>

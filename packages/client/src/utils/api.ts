@@ -1,4 +1,4 @@
-import { Project, Todo, DailyLog, CreateProjectData, UpdateProjectData, CreateTodoData, CreateLogData, UpdateTodoData } from '../types'
+import { Project, Todo, DailyLog, ProjectLog, CreateProjectData, UpdateProjectData, CreateTodoData, CreateLogData, CreateProjectLogData, UpdateProjectLogData, UpdateTodoData } from '../types'
 
 const API_BASE_URL = 'https://project-workbench-api.bassnova.workers.dev/api'
 
@@ -86,6 +86,29 @@ export const logsAPI = {
 
   delete: (id: string): Promise<{ success: boolean }> =>
     apiRequest(`/logs/${id}`, {
+      method: 'DELETE',
+    }),
+}
+
+// Project Logs API
+export const projectLogsAPI = {
+  getByProjectId: (projectId: string): Promise<ProjectLog[]> =>
+    apiRequest(`/project-logs/${projectId}`),
+
+  create: (data: CreateProjectLogData): Promise<ProjectLog> =>
+    apiRequest('/project-logs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: UpdateProjectLogData): Promise<ProjectLog> =>
+    apiRequest(`/project-logs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string): Promise<{ success: boolean }> =>
+    apiRequest(`/project-logs/${id}`, {
       method: 'DELETE',
     }),
 }
